@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: barber-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: barber
+  template:
+    metadata:
+      labels:
+        app: barber
+    spec:
+      containers:
+        - name: barber-container
+          image: manisankarrr/barber-shop-nsql:latest
+          ports:
+            - containerPort: 5000
+          env:
+            - name: PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: barber-config
+                  key: PORT
+            - name: MONGO_URI
+              valueFrom:
+                secretKeyRef:
+                  name: mongo-secret
+                  key: MONGO_URI
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 5000
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 5000
+            initialDelaySeconds: 15
+            periodSeconds: 20
